@@ -1,3 +1,4 @@
+import React from 'react';
 import { Card } from 'react-bootstrap';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
@@ -12,8 +13,8 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon, description }) 
   <Card className="p-3 shadow-sm border-0">
     <div className="d-flex align-items-start gap-3 mb-3">
       <div className={`p-2 rounded bg-opacity-25 ${title === 'Total Vehicles' ? 'bg-warning' :
-          title === 'Total Drivers' ? 'bg-primary' :
-            'bg-info'
+        title === 'Total Drivers' ? 'bg-primary' :
+          'bg-info'
         }`}>
         {icon}
       </div>
@@ -76,37 +77,54 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="container py-4">
-      <div className="row g-4 mb-4">
-        <div className="col-md-4">
-          <StatCard title="Total Vehicles" value={12} icon="🚗" description="Active in system" />
-        </div>
-        <div className="col-md-4">
-          <StatCard title="Total Drivers" value={5} icon="👤" description="Registered drivers" />
-        </div>
-        <div className="col-md-4">
-          <StatCard title="Today's Refuels" value={5} icon="⛽" description="Transactions today" />
-        </div>
-      </div>
+    <div className="bg-gray-100 min-h-screen">
+      <div style={{ width: '80%', marginLeft: '15%' }}>
+        <div className="p-4">
+          <div className="row g-4 mb-4">
+            <div className="col-md-4">
+              <StatCard title="Total Vehicles" value={12} icon="🚗" description="Active in system" />
+            </div>
+            <div className="col-md-4">
+              <StatCard title="Total Drivers" value={5} icon="👤" description="Registered drivers" />
+            </div>
+            <div className="col-md-4">
+              <StatCard title="Today's Refuels" value={5} icon="⛽" description="Transactions today" />
+            </div>
+          </div>
 
-      <div className="row">
-        <div className="col-12">
-          <RecentTransactionsTable />
-        </div>
-      </div>
+          <div className="row mb-4">
+            <div className="col-12">
+              <RecentTransactionsTable />
+            </div>
+          </div>
 
-      <div className="row mt-4">
-        <div className="col-12">
-          <Card className="p-3 shadow-sm border-0">
-            <h5 className="fw-semibold mb-3">Fuel Usage Trend</h5>
-            <LineChart width={800} height={300} data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip />
-              <Line type="monotone" dataKey="value" stroke="#2563eb" strokeWidth={2} dot={false} />
-            </LineChart>
-          </Card>
+          <div className="row">
+            <div className="col-12">
+              <Card className="p-3 shadow-sm border-0">
+                <h5 className="fw-semibold mb-3">Fuel Usage Trend</h5>
+                <div className="chart-container">
+                  <LineChart
+                    width={800}
+                    height={300}
+                    data={chartData}
+                    style={{ maxWidth: '100%' }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -2,20 +2,15 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 
-interface LoginFormData {
-    email: string;
-    password: string;
-}
-
-const LoginPage = () => {
-    const [formData, setFormData] = useState<LoginFormData>({
-        email: '',
-        password: ''
+const ResetPassword = () => {
+    const [formData, setFormData] = useState({
+        password: '',
+        confirmPassword: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Login attempted with:', formData);
+        console.log('Password reset attempt:', formData);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,55 +26,65 @@ const LoginPage = () => {
                 {/* Left Section - Form */}
                 <div className="col-lg-6 d-flex align-items-center justify-content-center">
                     <div className="w-75">
-                        <h1 className="fw-bold mb-2">Welcome Back 👋</h1>
-                        <p className="text-muted mb-4">Sign in to access your dashboard</p>
+                        <h1 className="fw-bold mb-2">Reset Your Password 🔒</h1>
+                        <p className="text-muted mb-4">Enter a new password to reset your account.</p>
 
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
-                                <label htmlFor="email" className="form-label">
-                                    Email <span className="text-danger">*</span>
+                                <label htmlFor="password" className="form-label">
+                                    Enter Old Password <span className="text-danger">*</span>
                                 </label>
                                 <input
-                                    type="email"
-                                    id="email"
-                                    name="email"
+                                    type="password"
+                                    id="Oldpassword"
+                                    name="Oldpassword"
                                     className="form-control"
-                                    placeholder="Enter your email"
-                                    value={formData.email}
+                                    placeholder="Enter old password"
+                                    value={formData.password}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
-
                             <div className="mb-3">
                                 <label htmlFor="password" className="form-label">
-                                    Password <span className="text-danger">*</span>
+                                    New Password <span className="text-danger">*</span>
                                 </label>
                                 <input
                                     type="password"
                                     id="password"
                                     name="password"
                                     className="form-control"
-                                    placeholder="Enter your password"
+                                    placeholder="Enter new password"
                                     value={formData.password}
                                     onChange={handleChange}
                                     required
                                 />
                             </div>
 
-                            <div className="d-flex justify-content-between mb-3">
-                                <Link to="/reset-password" className="text-primary text-decoration-none">
-                                    Do you want to reset Password Sir!
-                                </Link>
-                                <Link to="/forgot" className="text-danger text-decoration-none">
-                                    Forgot Password
-                                </Link>
+                            <div className="mb-3">
+                                <label htmlFor="confirmPassword" className="form-label">
+                                    Confirm Password <span className="text-danger">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    id="confirmPassword"
+                                    name="confirmPassword"
+                                    className="form-control"
+                                    placeholder="Re-enter new password"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    required
+                                />
                             </div>
 
                             <button type="submit" className="btn btn-primary w-100">
-                                Login
+                                Reset Password
                             </button>
                         </form>
+
+                        <div className="mt-3 text-center">
+                            <Link to="/" className="text-primary text-decoration-none">Back to Login</Link>
+                        </div>
                     </div>
                 </div>
 
@@ -92,4 +97,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default ResetPassword;
