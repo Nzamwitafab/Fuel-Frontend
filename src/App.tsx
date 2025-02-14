@@ -40,6 +40,9 @@ import LoginPage from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/Forgot';
 import StationManagement from './Admin_dashboard/StationManagement';
+import UserManagement from './Admin_dashboard/UserManagement';
+import VehicleManagement from './Admin_dashboard/VehicleManagement';
+import DriverManagement from './Admin_dashboard/DriverManagement';
 
 function App() {
   return (
@@ -51,6 +54,9 @@ function App() {
       <Route path="/" element={<Layout />}>
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="/stations" element={<StationManagement />} />
+        <Route path="/users" element={<UserManagement />} />
+        <Route path="/vehicles" element={<VehicleManagement />} />
+        <Route path="/drivers" element={<DriverManagement />} />
       </Route>
     </Routes>
   );
