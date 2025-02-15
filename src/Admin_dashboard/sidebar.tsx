@@ -11,14 +11,14 @@ interface MenuItem {
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const menuItems: MenuItem[] = [
-    { path: '/dashboard', icon: '📊', label: 'Dashboard' },
-    { path: '/stations', icon: '⛽', label: 'Station Management' },
-    { path: '/users', icon: '👥', label: 'User Management' },
-    { path: '/vehicles', icon: '🚗', label: 'Vehicle Management' },
-    { path: '/drivers', icon: '🧑', label: 'Driver Management' },
-    { path: '/fuel', icon: '⛽', label: 'Fuel Replenishment' },
-    { path: '/reports', icon: '📈', label: 'Reports & Analytics' },
-    { path: '/settings', icon: '⚙️', label: 'Settings' },
+    { path: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
+    { path: '/admin/stations', icon: '⛽', label: 'Station Management' },
+    { path: '/admin/users', icon: '👥', label: 'User Management' },
+    { path: '/admin/vehicles', icon: '🚗', label: 'Vehicle Management' },
+    { path: '/admin/drivers', icon: '🧑', label: 'Driver Management' },
+    { path: '/admin/fuel', icon: '⛽', label: 'Fuel Replenishment' },
+    { path: '/admin/reports', icon: '📈', label: 'Reports & Analytics' },
+    { path: '/admin/settings', icon: '⚙️', label: 'Settings' },
   ];
 
   return (

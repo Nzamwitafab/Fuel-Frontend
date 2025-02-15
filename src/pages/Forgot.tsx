@@ -49,7 +49,7 @@ const ForgotPassword = () => {
 
                 {/* Right Section - Image */}
                 <div className="col-lg-6 d-none d-lg-block">
-                    <img src="/Images/pumpb.jpg" alt="Fuel pump" className="img-fluid w-100 h-100 object-fit-cover" />
+                    <img src="/Images/sideImage.jpg" alt="Fuel pump" className="img-fluid w-100 h-100 object-fit-cover" />
                 </div>
             </div>
         </div>
