@@ -3,7 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const DriverManagement: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [drivers, setDrivers] = useState([
+    const [drivers] = useState([
         { name: 'NShuti Alain', email: 'alain@gmail.com', phone: '+250785206973', license: 'RAC 750 G', status: 'Active' },
         { name: 'Keza Valiante', email: 'valiante@gmail.com', phone: '+250785206973', license: 'RAC 750 G', status: 'Inactive' },
         { name: 'Kamali Olivier', email: 'olivier@gmail.com', phone: '+250785206973', license: 'RAC 750 G', status: 'Active' },
@@ -56,6 +56,13 @@ const DriverManagement: React.FC = () => {
                                     <input type="email" placeholder="Enter His or Her Email" className="form-control mb-3" />
                                     <input type="text" placeholder="Enter Telephone number" className="form-control mb-3" />
                                     <input type="text" placeholder="Enter License number" className="form-control mb-3" />
+                                    <div className="mb-3">
+                                        <select className="form-select">
+                                            <option>Assign Vehicle</option>
+                                            <option>RAB00C</option>
+                                            <option>RAG900G</option>
+                                        </select>
+                                    </div>
                                 </form>
                             </div>
                             <div className="modal-footer">

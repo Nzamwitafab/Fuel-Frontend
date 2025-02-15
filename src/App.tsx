@@ -43,6 +43,7 @@ import StationManagement from './Admin_dashboard/StationManagement';
 import UserManagement from './Admin_dashboard/UserManagement';
 import VehicleManagement from './Admin_dashboard/VehicleManagement';
 import DriverManagement from './Admin_dashboard/DriverManagement';
+import Report from './Admin_dashboard/Reports';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
         <Route path="/users" element={<UserManagement />} />
         <Route path="/vehicles" element={<VehicleManagement />} />
         <Route path="/drivers" element={<DriverManagement />} />
+        <Route path="/reports" element={<Report />} />
       </Route>
     </Routes>
   );

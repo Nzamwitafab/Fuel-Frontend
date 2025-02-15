@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Modal, Button } from 'react-bootstrap';
-import { Search, Bell } from 'lucide-react';
 
 interface Station {
     name: string;
@@ -126,18 +125,6 @@ const StationManagement: React.FC = () => {
                         <div className="mb-3">
                             <label className="form-label">Location</label>
                             <input type="text" name="location" value={formData.location} onChange={handleInputChange} className="form-control" required />
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">Manager Name</label>
-                            <input type="text" name="managerName" value={formData.managerName} onChange={handleInputChange} className="form-control" required />
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">Manager Phone</label>
-                            <input type="tel" name="managerPhone" value={formData.managerPhone} onChange={handleInputChange} className="form-control" required />
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">Manager Email</label>
-                            <input type="email" name="managerEmail" value={formData.managerEmail} onChange={handleInputChange} className="form-control" required />
                         </div>
                         <div className="d-flex justify-content-end gap-2">
                             <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
