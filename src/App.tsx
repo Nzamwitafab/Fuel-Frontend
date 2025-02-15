@@ -44,6 +44,8 @@ import UserManagement from './Admin_dashboard/UserManagement';
 import VehicleManagement from './Admin_dashboard/VehicleManagement';
 import DriverManagement from './Admin_dashboard/DriverManagement';
 import Report from './Admin_dashboard/Reports';
+import ProfileSettings from './Admin_dashboard/ProfileSettings';
+import VehicleRefuelingValidation from './Admin_dashboard/VehicleRefuelingValidation';
 
 function App() {
   return (
@@ -59,6 +61,8 @@ function App() {
         <Route path="/vehicles" element={<VehicleManagement />} />
         <Route path="/drivers" element={<DriverManagement />} />
         <Route path="/reports" element={<Report />} />
+        <Route path="/settings" element={<ProfileSettings />} />
+        <Route path="/fuel" element={<VehicleRefuelingValidation />} />
       </Route>
     </Routes>
   );
