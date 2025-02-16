@@ -1,39 +1,6 @@
-// import { Routes, Route, Navigate } from 'react-router-dom';
-// import Layout from './Admin_dashboard/Layout';
-// import Dashboard from './Admin_dashboard/Dashboard';
-// import LoginPage from './pages/Login';
-// import ResetPassword from './pages/ResetPassword';
-// import ForgotPassword from './pages/Forgot';
-
-// import { ReactElement } from 'react';
-
-// function ProtectedRoute({ element }: { element: ReactElement }) {
-
-//   const isAuthenticated = localStorage.getItem("authToken"); 
-
-//   return isAuthenticated ? element : <Navigate to="/login" replace />;
-
-// }
-
-// function App() {
-//   return (
-//     <Routes>
-//       <Route path="/login" element={<LoginPage />} />
-//       <Route path="/reset-password" element={<ResetPassword />} />
-//       <Route path="/forgot" element={<ForgotPassword />} />
-//       <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
-//         <Route path="dashboard" element={<Dashboard />} />
-//       </Route>
-//     </Routes>
-//   );
-// }
-
-// export default App;
-
-
-
-
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { ReactElement } from 'react';
+// Import all your components
 import Layout from './Admin_dashboard/Layout';
 import Dashboard from './Admin_dashboard/Dashboard';
 import LoginPage from './pages/Login';
@@ -55,6 +22,48 @@ import Bdashboard from './Boss_dashboard/Bdashboard';
 import Blayout from './Boss_dashboard/Blayout';
 import Breport from './Boss_dashboard/Breports';
 import Profile from './Boss_dashboard/Bprofile';
+// import { jwtDecode } from 'jwt-decode';
+
+interface ProtectedRouteProps {
+  element: ReactElement;
+  allowedRoles?: string[];
+}
+
+const ProtectedRoute = ({ element, allowedRoles }: ProtectedRouteProps) => {
+  const location = useLocation();
+  const accessToken = localStorage.getItem("accessToken");
+  
+  // If there's no access token, redirect to login
+  if (!accessToken) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  try {
+    // Decode the token and check role if allowedRoles is specified
+    const decodedToken = jwtDecode(accessToken) as { role: string };
+    
+    if (allowedRoles && !allowedRoles.includes(decodedToken.role)) {
+      // If user's role isn't in the allowed roles, redirect to their appropriate dashboard
+      switch (decodedToken.role) {
+        case 'admin':
+          return <Navigate to="/admin/dashboard" replace />;
+        case 'station_worker':
+          return <Navigate to="/station/dashboard" replace />;
+        case 'viewer':
+          return <Navigate to="/boss/dashboard" replace />;
+        default:
+          return <Navigate to="/login" replace />;
+      }
+    }
+
+    return element;
+  } catch (error) {
+    // If token is invalid, clear storage and redirect to login
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+};
 
 function App() {
   return (
@@ -64,8 +73,11 @@ function App() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/forgot" element={<ForgotPassword />} />
 
-      {/* Admin dashboard routes */}
-      <Route path="/admin" element={<Layout />}>
+      {/* Admin routes */}
+      <Route 
+        path="/admin" 
+        element={<ProtectedRoute element={<Layout />} allowedRoles={['admin']} />}
+      >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="stations" element={<StationManagement />} />
@@ -77,32 +89,45 @@ function App() {
         <Route path="fuel" element={<VehicleRefuelingValidation />} />
       </Route>
 
-      {/* Station dashboard routes */}
-      <Route path="/station" element={<Blayout />}>
+      {/* Station worker routes */}
+      <Route 
+        path="/station" 
+        element={<ProtectedRoute element={<DashboardLayout />} allowedRoles={['station_worker']} />}
+      >
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<Bdashboard />} />
+        <Route path="dashboard" element={<DashboardMain />} />
         <Route path="fuel-services" element={<RefuelingDashboard />} />
         <Route path="reports" element={<ReportMain />} />
         <Route path="profile" element={<ProfileSetting />} />
-        {/* Add more station-specific routes here */}
       </Route>
 
-      {/* Boss dashboard routes */}
-      <Route path="/boss" element={<DashboardLayout />}>
+      {/* Boss/Viewer routes */}
+      <Route 
+        path="/boss" 
+        element={<ProtectedRoute element={<Blayout />} allowedRoles={['viewer']} />}
+      >
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardMain />} />
+        <Route path="dashboard" element={<Bdashboard />} />
         <Route path="reports" element={<Breport />} />
         <Route path="profile" element={<Profile />} />
-        {/* Add more station-specific routes here */}
       </Route>
-      {/* Root redirect */}
-      <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
 
-      {/* Catch all route for 404 */}
-      <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+      {/* Root redirect */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
+      {/* Catch all route */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
 
 export default App;
+function jwtDecode(accessToken: string): { role: string; } {
+  const base64Url = accessToken.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
 
+  return JSON.parse(jsonPayload);
+}

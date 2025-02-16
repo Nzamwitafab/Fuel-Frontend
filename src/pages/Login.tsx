@@ -1,21 +1,107 @@
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+
+// Create axios instance with default config
+const api = axios.create({
+    baseURL: 'http://localhost:5000',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    withCredentials: true
+});
 
 interface LoginFormData {
     email: string;
     password: string;
 }
 
+interface TokenData {
+    role: string;
+}
+
+interface TokenResponse {
+    token: {
+        accessToken: string;
+        refreshToken: string;
+    };
+}
+
 const LoginPage = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState<LoginFormData>({
         email: '',
         password: ''
     });
+    const [error, setError] = useState<string>('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Login attempted with:', formData);
+        setError('');
+
+        try {
+            const response = await api.post<TokenResponse>('/api/auth/login', formData);
+            console.log('Response:', response.data);
+
+            // Check if response has the correct structure
+            if (!response.data?.token?.accessToken) {
+                throw new Error('No access token received in response');
+            }
+
+            const accessToken = response.data.token.accessToken;
+            const refreshToken = response.data.token.refreshToken;
+            
+            try {
+                // Decode access token to get user role
+                const decodedToken = jwtDecode(accessToken) as TokenData;
+                console.log('Decoded token:', decodedToken);
+
+                if (!decodedToken.role) {
+                    throw new Error('No role found in token');
+                }
+
+                // Store tokens in localStorage
+                localStorage.setItem('accessToken', accessToken);
+                localStorage.setItem('refreshToken', refreshToken);
+
+                // Route based on role
+                switch (decodedToken.role) {
+                    case 'admin':
+                        navigate('/admin/dashboard');
+                        break;
+                    case 'station_worker':
+                        navigate('/station/dashboard');
+                        break;
+                    case 'viewer':
+                        navigate('/boss/dashboard');
+                        break;
+                    default:
+                        setError(`Invalid role: ${decodedToken.role}`);
+                        break;
+                }
+            } catch (decodeError) {
+                console.error('Token decode error:', decodeError);
+                setError('Invalid token format');
+            }
+
+        } catch (err) {
+            console.error('Login error:', err);
+            if (axios.isAxiosError(err)) {
+                const errorMessage = err.response?.data?.message || err.message;
+                console.error('Axios error details:', {
+                    status: err.response?.status,
+                    data: err.response?.data,
+                    message: errorMessage
+                });
+                setError(`Login failed: ${errorMessage}`);
+            } else if (err instanceof Error) {
+                setError(err.message);
+            } else {
+                setError('An unexpected error occurred');
+            }
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +119,12 @@ const LoginPage = () => {
                     <div className="w-75">
                         <h1 className="fw-bold mb-2">Welcome Back 👋</h1>
                         <p className="text-muted mb-4">Sign in to access your dashboard</p>
+
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error}
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
