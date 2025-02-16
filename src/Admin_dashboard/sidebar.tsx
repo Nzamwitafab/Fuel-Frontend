@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 interface MenuItem {
@@ -10,9 +10,12 @@ interface MenuItem {
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
   const menuItems: MenuItem[] = [
     { path: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/admin/stations', icon: '⛽', label: 'Station Management' },
+    { path: '/admin/price', icon: '💲', label: 'Fuel Price ' },
     { path: '/admin/users', icon: '👥', label: 'User Management' },
     { path: '/admin/vehicles', icon: '🚗', label: 'Vehicle Management' },
     { path: '/admin/drivers', icon: '🧑', label: 'Driver Management' },
@@ -20,6 +23,15 @@ const Sidebar: React.FC = () => {
     { path: '/admin/reports', icon: '📈', label: 'Reports & Analytics' },
     { path: '/admin/settings', icon: '⚙️', label: 'Settings' },
   ];
+
+  const handleLogout = () => {
+    // Clear tokens from localStorage
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    // Navigate to login page
+    navigate('/');
+  };
 
   return (
     <aside className="d-flex flex-column vh-100 bg-light p-3 border-end position-fixed" style={{ width: '250px' }}>
@@ -48,7 +60,7 @@ const Sidebar: React.FC = () => {
 
       <div className="mt-auto">
         <button
-          onClick={() => {/* Add logout logic */ }}
+          onClick={handleLogout}
           className="btn btn-outline-danger w-100 d-flex align-items-center justify-content-start py-2 px-3"
         >
           <span className="me-2">🚪</span>

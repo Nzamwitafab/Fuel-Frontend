@@ -22,7 +22,7 @@ import Bdashboard from './Boss_dashboard/Bdashboard';
 import Blayout from './Boss_dashboard/Blayout';
 import Breport from './Boss_dashboard/Breports';
 import Profile from './Boss_dashboard/Bprofile';
-// import { jwtDecode } from 'jwt-decode';
+
 
 interface ProtectedRouteProps {
   element: ReactElement;
@@ -33,17 +33,17 @@ const ProtectedRoute = ({ element, allowedRoles }: ProtectedRouteProps) => {
   const location = useLocation();
   const accessToken = localStorage.getItem("accessToken");
   
-  // If there's no access token, redirect to login
+
   if (!accessToken) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   try {
-    // Decode the token and check role if allowedRoles is specified
+   
     const decodedToken = jwtDecode(accessToken) as { role: string };
     
     if (allowedRoles && !allowedRoles.includes(decodedToken.role)) {
-      // If user's role isn't in the allowed roles, redirect to their appropriate dashboard
+      
       switch (decodedToken.role) {
         case 'admin':
           return <Navigate to="/admin/dashboard" replace />;
@@ -58,7 +58,7 @@ const ProtectedRoute = ({ element, allowedRoles }: ProtectedRouteProps) => {
 
     return element;
   } catch (error) {
-    // If token is invalid, clear storage and redirect to login
+   
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -68,12 +68,12 @@ const ProtectedRoute = ({ element, allowedRoles }: ProtectedRouteProps) => {
 function App() {
   return (
     <Routes>
-      {/* Public routes */}
+    
       <Route path="/login" element={<LoginPage />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/forgot" element={<ForgotPassword />} />
 
-      {/* Admin routes */}
+   
       <Route 
         path="/admin" 
         element={<ProtectedRoute element={<Layout />} allowedRoles={['admin']} />}
@@ -89,7 +89,7 @@ function App() {
         <Route path="fuel" element={<VehicleRefuelingValidation />} />
       </Route>
 
-      {/* Station worker routes */}
+  
       <Route 
         path="/station" 
         element={<ProtectedRoute element={<DashboardLayout />} allowedRoles={['station_worker']} />}
@@ -101,7 +101,7 @@ function App() {
         <Route path="profile" element={<ProfileSetting />} />
       </Route>
 
-      {/* Boss/Viewer routes */}
+
       <Route 
         path="/boss" 
         element={<ProtectedRoute element={<Blayout />} allowedRoles={['viewer']} />}
@@ -112,10 +112,10 @@ function App() {
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      {/* Root redirect */}
+    
       <Route path="/" element={<Navigate to="/login" replace />} />
 
-      {/* Catch all route */}
+    
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

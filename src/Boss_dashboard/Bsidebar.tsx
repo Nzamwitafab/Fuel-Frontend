@@ -1,9 +1,33 @@
 import React from 'react';
 import { Badge } from 'react-bootstrap';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Sidebar: React.FC = () => {
-    const location = useLocation(); // Get current route
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        // Clear tokens from localStorage
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+
+        // Navigate to login page
+        navigate('/');
+    };
+
+    const mainMenuItems = [
+        { to: "/boss/dashboard", label: "Dashboard" },
+        { to: "/boss/reports", label: "Reports & Analaysis" }
+    ];
+
+    const bottomMenuItems = [
+        { to: "/boss/profile", label: "Profile" },
+        {
+            to: "#", // Changed from direct routing to handle click
+            label: "Logout",
+            onClick: handleLogout
+        }
+    ];
 
     return (
         <div
@@ -37,13 +61,10 @@ const Sidebar: React.FC = () => {
                 <h5 className="fw-bold text-dark">Uwimana Sarah</h5>
             </div>
             <br /><br />
-            {/* Navigation Links (Centered) */}
+
             <nav className="w-100 text-center">
                 <ul className="list-unstyled">
-                    {[
-                        { to: "/boss/dashboard", label: "Dashboard" },
-                        { to: "/boss/reports", label: "Reports & Analaysis" }
-                    ].map((item, index) => (
+                    {mainMenuItems.map((item, index) => (
                         <li key={index} className="mb-4">
                             <Link
                                 to={item.to}
@@ -61,26 +82,41 @@ const Sidebar: React.FC = () => {
                 </ul>
             </nav>
 
-            {/* Bottom Links (Stuck to Bottom) */}
             <div className="w-100 text-center">
                 <hr className="my-4" style={{ width: '80%', borderTop: '2px solid #e0e0e0' }} />
                 <ul className="list-unstyled">
-                    {[
-                        { to: "/boss/profile", label: "Profile" },
-                        { to: "/login", label: "Logout" }
-                    ].map((item, index) => (
+                    {bottomMenuItems.map((item, index) => (
                         <li key={index} className="mb-3">
-                            <Link
-                                to={item.to}
-                                className="text-decoration-none fw-semibold"
-                                style={{
-                                    fontSize: '1.1rem',
-                                    color: location.pathname === item.to ? '#000' : '#666',
-                                    fontWeight: location.pathname === item.to ? 'bold' : 'normal'
-                                }}
-                            >
-                                {item.label}
-                            </Link>
+                            {item.onClick ? (
+                                <a
+                                    href="#"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        item.onClick();
+                                    }}
+                                    className="text-decoration-none fw-semibold"
+                                    style={{
+                                        fontSize: '1.1rem',
+                                        color: location.pathname === item.to ? '#000' : '#666',
+                                        fontWeight: location.pathname === item.to ? 'bold' : 'normal',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {item.label}
+                                </a>
+                            ) : (
+                                <Link
+                                    to={item.to}
+                                    className="text-decoration-none fw-semibold"
+                                    style={{
+                                        fontSize: '1.1rem',
+                                        color: location.pathname === item.to ? '#000' : '#666',
+                                        fontWeight: location.pathname === item.to ? 'bold' : 'normal'
+                                    }}
+                                >
+                                    {item.label}
+                                </Link>
+                            )}
                         </li>
                     ))}
                 </ul>
