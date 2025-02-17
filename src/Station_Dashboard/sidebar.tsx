@@ -26,15 +26,13 @@ const Sidebar: React.FC = () => {
                 <List size={30} />
             </Button>
 
-            {/* Sidebar for Larger Screens */}
-            <div className="d-none d-lg-flex flex-column align-items-center bg-white shadow-lg"
-                style={{ height: "100vh", width: "350px", padding: "30px 0", position: "fixed" }}
+            {/* Responsive Offcanvas Sidebar */}
+            <Offcanvas
+                show={show}
+                onHide={() => setShow(false)}
+                responsive="lg"
+                className="sidebar-width"
             >
-                <SidebarContent handleLogout={handleLogout} />
-            </div>
-
-            {/* Offcanvas Sidebar for Mobile */}
-            <Offcanvas show={show && window.innerWidth < 992} onHide={() => setShow(false)} responsive="lg">
                 <Offcanvas.Header closeButton>
                     <Offcanvas.Title>Menu</Offcanvas.Title>
                 </Offcanvas.Header>
@@ -42,16 +40,35 @@ const Sidebar: React.FC = () => {
                     <SidebarContent handleLogout={handleLogout} />
                 </Offcanvas.Body>
             </Offcanvas>
+
+            {/* Add custom CSS for the sidebar width on large screens */}
+            <style>
+                {`
+                    @media (min-width: 992px) {
+                        .sidebar-width {
+                            width: 350px !important;
+                        }
+                        .offcanvas-lg {
+                            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                            background-color: white;
+                            height: 100vh;
+                        }
+                    }
+                `}
+            </style>
         </>
     );
 };
 
-// Sidebar Content Component (Reusable)
+// Sidebar Content Component
 const SidebarContent: React.FC<{ handleLogout: () => void }> = ({ handleLogout }) => {
     const location = useLocation();
 
     return (
-        <div className="text-center">
+        <div
+            className="d-flex flex-column align-items-center bg-white"
+            style={{ height: '100vh', width: '350px', padding: '150px 0' }}
+        >
             {/* Profile Section */}
             <div className="d-flex flex-column align-items-center">
                 <div className="position-relative mb-3">
@@ -79,7 +96,7 @@ const SidebarContent: React.FC<{ handleLogout: () => void }> = ({ handleLogout }
             </div>
 
             {/* Navigation Links */}
-            <nav className="w-100 text-left mt-4">
+            <nav className="w-100 text-left mt-4" style={{padding: '50px 100px'}}>
                 <ul className="list-unstyled">
                     {[
                         { to: "/station/dashboard", label: "Dashboard" },
@@ -104,8 +121,8 @@ const SidebarContent: React.FC<{ handleLogout: () => void }> = ({ handleLogout }
             </nav>
 
             {/* Bottom Links */}
-            <div className="w-100 text-left">
-                <hr className="my-4" style={{ width: "80%", borderTop: "2px solid #e0e0e0" }} />
+            <div className="w-100 text-left" style={{padding: '0px 100px'}}>
+                <hr className="my-4" style={{ width: "80%", margin: "0 auto", borderTop: "2px solid #e0e0e0" }} />
                 <ul className="list-unstyled">
                     <li className="mb-3">
                         <Link
@@ -123,11 +140,10 @@ const SidebarContent: React.FC<{ handleLogout: () => void }> = ({ handleLogout }
                     <li>
                         <button
                             onClick={handleLogout}
-                            className="btn btn-link text-decoration-none fw-semibold d-block py-2 px-3 rounded"
+                            className="btn btn-link text-decoration-none fw-semibold d-block py-2 px-3 rounded w-100 text-start"
                             style={{
                                 fontSize: "1.1rem",
                                 color: "#666",
-                                padding: 0,
                             }}
                         >
                             Logout
