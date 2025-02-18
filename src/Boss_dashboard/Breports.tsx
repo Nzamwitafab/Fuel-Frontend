@@ -31,10 +31,10 @@ const Breport = () => {
             {activeTab === 'Fuel Usage' ? (
                 <>
                     <div className="row row-cols-1 row-cols-md-4 g-3 mb-4">
-                        <div className="col"><Card className="p-3"><h5>Total Consumption</h5><p className="fs-4 fw-bold">2,850 L</p><span className="text-success">+12.5% from last period</span></Card></div>
-                        <div className="col"><Card className="p-3"><h5>Total Cost</h5><p className="fs-4 fw-bold">1,000,000 RWF</p><span className="text-success">+12.5% from last period</span></Card></div>
-                        <div className="col"><Card className="p-3"><h5>Avg. Price/Liter</h5><p className="fs-4 fw-bold">2,000 RWF</p><span className="text-danger">-2.1% from last period</span></Card></div>
-                        <div className="col"><Card className="p-3"><h5>Transactions</h5><p className="fs-4 fw-bold">324</p><span className="text-success">+5.2% from last period</span></Card></div>
+                        <div className="col"><Card className="p-3"><h5>Today's Fuel Consumption</h5><p className="fs-4 fw-bold">2,850 L</p><span className="text-success">+12.5% from yesterday</span></Card></div>
+                        <div className="col"><Card className="p-3"><h5>Total Cost</h5><p className="fs-4 fw-bold">1,000,000 RWF</p><span className="text-success">+12.5% from yesterday</span></Card></div>
+                        <div className="col"><Card className="p-3"><h5>Avg. Price/Liter</h5><p className="fs-4 fw-bold">2,000 RWF</p><span className="text-danger">-2.1% from yesterday</span></Card></div>
+                        <div className="col"><Card className="p-3"><h5>Transactions</h5><p className="fs-4 fw-bold">324</p><span className="text-success">+5.2% from yesterday</span></Card></div>
                     </div>
                     <h2 className="text-center mb-4">Daily Fuel Consumption</h2>
                     <ResponsiveContainer width="100%" height={400}>

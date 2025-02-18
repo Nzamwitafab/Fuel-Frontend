@@ -3,13 +3,80 @@ import { Check, Search, Calendar } from 'lucide-react';
 import { Card } from 'react-bootstrap';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
+import axios from 'axios';
+
+interface FuelTransaction {
+    id: number;
+    fuel_type: string;
+    total_litres: string;
+    totalPrice: string;
+    createdAt: string;
+    Vehicle: {
+        plateNumber: string;
+        model: string;
+        fuelType: string;
+    };
+    Driver: {
+        name: string;
+    };
+    Station: {
+        name: string;
+    };
+}
 
 const VehicleRefuelingValidation: React.FC = () => {
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [isEligible, setIsEligible] = useState(false);
+    const [transactions, setTransactions] = useState<FuelTransaction[]>([]);
+    const [vehicleDetails, setVehicleDetails] = useState<{
+        plateNumber: string;
+        model: string;
+        fuelType: string;
+        driverName: string;
+    } | null>(null);
 
-    const handleValidation = () => {
-        setIsEligible(true); // Mock validation
+    const getConfig = () => {
+        const token = localStorage.getItem('accessToken');
+        return {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+    };
+
+    const handleValidation = async () => {
+        if (!vehicleNumber.trim()) {
+            alert('Please enter a vehicle plate number.');
+            return;
+        }
+
+        try {
+            const response = await axios.get(
+                `http://localhost:5000/api/fuel-transactions/vehicle/${vehicleNumber}`,
+                getConfig()
+            );
+            const data = response.data;
+
+            if (data.length > 0) {
+                setIsEligible(true);
+                setTransactions(data);
+                setVehicleDetails({
+                    plateNumber: data[0].Vehicle.plateNumber,
+                    model: data[0].Vehicle.model,
+                    fuelType: data[0].Vehicle.fuelType,
+                    driverName: data[0].Driver.name
+                });
+            } else {
+                setIsEligible(false);
+                setTransactions([]);
+                setVehicleDetails(null);
+                alert('No transactions found for this vehicle.');
+            }
+        } catch (error) {
+            console.error('Error fetching transactions:', error);
+            alert('Error fetching transactions. Please try again.');
+        }
     };
 
     return (
@@ -33,13 +100,15 @@ const VehicleRefuelingValidation: React.FC = () => {
                 )}
             </Card>
 
-            <Card className="p-4 mb-4">
-                <h3 className="mb-2">Vehicle Details</h3>
-                <p><strong>Vehicle:</strong> Toyota Camry</p>
-                <p><strong>Driver:</strong> Muhinda Kevin</p>
-                <p><strong>Fuel Type:</strong> Petrol</p>
-                <p><strong>Last Refuel:</strong> 02/09/2025 at 12:01 pm</p>
-            </Card>
+            {vehicleDetails && (
+                <Card className="p-4 mb-4">
+                    <h3 className="mb-2">Vehicle Details</h3>
+                    <p><strong>Vehicle:</strong> {vehicleDetails.model}</p>
+                    <p><strong>Driver:</strong> {vehicleDetails.driverName}</p>
+                    <p><strong>Fuel Type:</strong> {vehicleDetails.fuelType}</p>
+                    <p><strong>Last Refuel:</strong> {transactions[0]?.createdAt ? new Date(transactions[0].createdAt).toLocaleString() : 'N/A'}</p>
+                </Card>
+            )}
 
             <Card className="p-4">
                 <h3 className="mb-3">Fuel Transactions History</h3>
@@ -63,16 +132,20 @@ const VehicleRefuelingValidation: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>2025-02-09 09:30</td>
-                            <td>RAC 750 G</td>
-                            <td>M. Kevin</td>
-                            <td>KABEZA Station</td>
-                            <td className="text-success">Petrol</td>
-                            <td>45</td>
-                            <td>55,000 RWF</td>
-                            <td className="text-success">Completed</td>
-                        </tr>
+                        {transactions.map((transaction) => (
+                            <tr key={transaction.id}>
+                                <td>{new Date(transaction.createdAt).toLocaleString()}</td>
+                                <td>{transaction.Vehicle.plateNumber}</td>
+                                <td>{transaction.Driver.name}</td>
+                                <td>{transaction.Station.name}</td>
+                                <td className={`text-${transaction.fuel_type === 'Petrol' ? 'success' : 'info'}`}>
+                                    {transaction.fuel_type}
+                                </td>
+                                <td>{transaction.total_litres}</td>
+                                <td>{transaction.totalPrice} RWF</td>
+                                <td className="text-success">Completed</td>
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
             </Card>
