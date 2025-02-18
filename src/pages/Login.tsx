@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode'; // Corrected import
 
 // Create axios instance with default config
 const api = axios.create({
@@ -13,6 +13,7 @@ const api = axios.create({
     withCredentials: true
 });
 
+// Interfaces for data types
 interface LoginFormData {
     email: string;
     password: string;
@@ -43,16 +44,17 @@ const LoginPage = () => {
 
         try {
             const response = await api.post<TokenResponse>('/api/auth/login', formData);
-            console.log('Response:', response.data);
+            console.log('Full Response:', response);
 
-            // Check if response has the correct structure
+            // Check if accessToken is present
             if (!response.data?.token?.accessToken) {
-                throw new Error('No access token received in response');
+                console.error('No access token received:', response.data);
+                throw new Error('No access token received');
             }
 
             const accessToken = response.data.token.accessToken;
             const refreshToken = response.data.token.refreshToken;
-            
+
             try {
                 // Decode access token to get user role
                 const decodedToken = jwtDecode(accessToken) as TokenData;
@@ -160,7 +162,7 @@ const LoginPage = () => {
                             </div>
 
                             <div className="d-flex justify-content-between mb-3">
-                                <Link to="/reset-password" className="text-primary text-decoration-none">
+                                <Link to="/change-password" className="text-primary text-decoration-none">
                                     Do you want to reset Password Sir!
                                 </Link>
                                 <Link to="/forgot" className="text-danger text-decoration-none">

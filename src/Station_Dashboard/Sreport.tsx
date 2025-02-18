@@ -32,7 +32,7 @@ const ReportMain = () => {
                 backgroundColor: "white",
                 border: "1px solid skyblue",
                 borderRadius: "20px",
-                height: "100vh",
+                height: "95vh",
                 margin: "0 auto",
                 width: "90%"
             }}

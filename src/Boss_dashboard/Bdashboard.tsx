@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface StatCardProps {
     title: string;
@@ -66,68 +66,52 @@ const RecentTransactionsTable = () => {
 };
 
 const Bdashboard = () => {
-    const chartData = [
-        { month: 'Jan', value: 30 },
-        { month: 'Feb', value: 40 },
-        { month: 'Mar', value: 45 },
-        { month: 'Apr', value: 65 },
-        { month: 'May', value: 55 },
-        { month: 'Jun', value: 45 },
-        { month: 'Jul', value: 40 },
+
+    const fuelData = [
+        { day: 'Sun', petrol: 20, diesel: 30 },
+        { day: 'Mon', petrol: 50, diesel: 40 },
+        { day: 'Tue', petrol: 80, diesel: 70 },
+        { day: 'Wed', petrol: 60, diesel: 90 },
+        { day: 'Thu', petrol: 40, diesel: 50 },
+        { day: 'Fri', petrol: 90, diesel: 80 },
+        { day: 'Sat', petrol: 100, diesel: 100 },
     ];
 
     return (
-        <div
-            className="d-flex justify-content-center align-items-center"
-            style={{ backgroundColor: "#EDEDED", border: "1px solid skyblue", borderRadius: "20px", height: "100vh", margin: "0 auto", width: "90%" }}
-        >
-            <div className="bg-gray-100 min-h-screen">
-                <div style={{ width: '80%', marginLeft: '15%' }}>
-                    <div className="p-4">
-                        <div className="row g-4 mb-4">
-                            <div className="col-md-4">
-                                <StatCard title="Total Vehicles" value={12} icon="🚗" description="Active in system" />
-                            </div>
-                            <div className="col-md-4">
-                                <StatCard title="Total Drivers" value={5} icon="👤" description="Registered drivers" />
-                            </div>
-                            <div className="col-md-4">
-                                <StatCard title="Today's Refuels" value={5} icon="⛽" description="Transactions today" />
-                            </div>
+        <div className="bg-gray-100 min-h-screen">
+            <div style={{ width: '80%', marginLeft: '15%' }}>
+                <div className="p-4">
+                    <div className="row g-4 mb-4">
+                        <div className="col-md-4">
+                            <StatCard title="Total Vehicles" value={12} icon="🚗" description="Active in system" />
                         </div>
-
-                        <div className="row mb-4">
-                            <div className="col-12">
-                                <RecentTransactionsTable />
-                            </div>
+                        <div className="col-md-4">
+                            <StatCard title="Total Drivers" value={5} icon="👤" description="Registered drivers" />
                         </div>
+                        <div className="col-md-4">
+                            <StatCard title="Today's Refuels" value={5} icon="⛽" description="Transactions today" />
+                        </div>
+                    </div>
 
-                        <div className="row">
-                            <div className="col-12">
-                                <Card className="p-3 shadow-sm border-0">
-                                    <h5 className="fw-semibold mb-3">Fuel Usage Trend</h5>
-                                    <div className="chart-container">
-                                        <LineChart
-                                            width={800}
-                                            height={300}
-                                            data={chartData}
-                                            style={{ maxWidth: '100%' }}
-                                        >
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                            <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                                            <YAxis axisLine={false} tickLine={false} />
-                                            <Tooltip />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="value"
-                                                stroke="#2563eb"
-                                                strokeWidth={2}
-                                                dot={false}
-                                            />
-                                        </LineChart>
-                                    </div>
-                                </Card>
-                            </div>
+                    <div className="row mb-4">
+                        <div className="col-12">
+                            <RecentTransactionsTable />
+                        </div>
+                    </div>
+
+                    <div className="row">
+                        <div className="col-12">
+                            <h2 className="text-center mb-4">Daily Fuel Consumption</h2>
+                            <ResponsiveContainer width="100%" height={400}>
+                                <LineChart data={fuelData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+                                    <XAxis dataKey="day" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Line type="monotone" dataKey="petrol" stroke="#32CD32" name="Petrol" />
+                                    <Line type="monotone" dataKey="diesel" stroke="#6A0DAD" name="Diesel" />
+                                </LineChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>

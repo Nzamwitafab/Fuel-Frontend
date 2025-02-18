@@ -6,7 +6,7 @@ const DashboardMain: React.FC = () => {
   return (
     <div
       className="d-flex justify-content-center align-items-center"
-      style={{ backgroundColor: "#EDEDED", border: "1px solid skyblue", borderRadius: "20px", height: "100vh", margin: "0 auto", width: "90%" }}
+      style={{ backgroundColor: "#EDEDED", border: "1px solid skyblue", borderRadius: "20px", height: "95vh", margin: "0 auto", width: "90%" }}
     >
       <div className="container-fluid p-4">
         {/* Top Stats Section */}

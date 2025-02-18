@@ -15,7 +15,6 @@ const Sidebar: React.FC = () => {
   const menuItems: MenuItem[] = [
     { path: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
     { path: '/admin/stations', icon: '⛽', label: 'Station Management' },
-    { path: '/admin/price', icon: '💲', label: 'Fuel Price ' },
     { path: '/admin/users', icon: '👥', label: 'User Management' },
     { path: '/admin/vehicles', icon: '🚗', label: 'Vehicle Management' },
     { path: '/admin/drivers', icon: '🧑', label: 'Driver Management' },
