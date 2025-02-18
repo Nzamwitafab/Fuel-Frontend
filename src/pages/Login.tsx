@@ -162,7 +162,7 @@ const LoginPage = () => {
                             </div>
 
                             <div className="d-flex justify-content-between mb-3">
-                                <Link to="/reset-password" className="text-primary text-decoration-none">
+                                <Link to="/change-password" className="text-primary text-decoration-none">
                                     Do you want to reset Password Sir!
                                 </Link>
                                 <Link to="/forgot" className="text-danger text-decoration-none">

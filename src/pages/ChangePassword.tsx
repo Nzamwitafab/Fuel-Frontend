@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 
-const ResetPassword = () => {
+const ChangePassword = () => {
     const [formData, setFormData] = useState({
         password: '',
         confirmPassword: '',
@@ -30,6 +30,21 @@ const ResetPassword = () => {
                         <p className="text-muted mb-4">Enter a new password to reset your account.</p>
 
                         <form onSubmit={handleSubmit}>
+                            <div className="mb-3">
+                                <label htmlFor="password" className="form-label">
+                                    Enter Old Password <span className="text-danger">*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    id="Oldpassword"
+                                    name="Oldpassword"
+                                    className="form-control"
+                                    placeholder="Enter old password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
                             <div className="mb-3">
                                 <label htmlFor="password" className="form-label">
                                     New Password <span className="text-danger">*</span>
@@ -82,4 +97,4 @@ const ResetPassword = () => {
     );
 };
 
-export default ResetPassword;
+export default ChangePassword;

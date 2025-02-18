@@ -45,15 +45,6 @@ const ProfileSettings = () => {
                 <label>New Password:</label>
                 <input type="password" className="form-control" placeholder="Change Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
             </div>
-
-            <h4 className="mt-4">System Setting:</h4>
-            <div className="d-flex align-items-center">
-                <Bell className="me-2" />
-                <span>Email Notification</span>
-                <div className="form-check form-switch ms-auto">
-                    <input className="form-check-input" type="checkbox" checked={notification} onChange={() => setNotification(!notification)} />
-                </div>
-            </div>
         </div>
     );
 };
