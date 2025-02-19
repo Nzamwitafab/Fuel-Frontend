@@ -83,36 +83,48 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:5000/api/fuel-transactions', {
+
+      // Fetch fuel transactions
+      const fuelTransactionsResponse = await fetch('http://localhost:5000/api/fuel-transactions', {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
       });
-      const result = await response.json();
-      setData(result);
+      const fuelTransactions = await fuelTransactionsResponse.json();
+      setData(fuelTransactions);
 
-      // Calculate Total Vehicles
-      const uniqueVehicles: Set<string> = new Set(result.map((tx: Transaction) => tx.Vehicle.plateNumber));
-      setTotalVehicles(uniqueVehicles.size);
+      // Fetch total vehicles
+      const vehiclesResponse = await fetch('http://localhost:5000/api/vehicles/all', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      const vehiclesData = await vehiclesResponse.json();
+      setTotalVehicles(vehiclesData.length);
 
-      // Calculate Total Drivers
-      const uniqueDrivers: Set<string> = new Set(result.map((tx: Transaction) => tx.Driver.name));
-      setTotalDrivers(uniqueDrivers.size);
+      // Fetch total drivers
+      const driversResponse = await fetch('http://localhost:5000/api/drivers/all', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      const driversData = await driversResponse.json();
+      setTotalDrivers(driversData.length);
 
       // Calculate Today's Refuels
       const today = new Date().toISOString().split('T')[0];
-      const todayTransactions: Transaction[] = result.filter((tx: Transaction) => tx.createdAt.split('T')[0] === today);
+      const todayTransactions = fuelTransactions.filter((tx: Transaction) => tx.createdAt.split('T')[0] === today);
       setTodayRefuels(todayTransactions.length);
 
       // Set Recent Transactions
-      setRecentTransactions(result.slice(0, 3));
+      setRecentTransactions(fuelTransactions.slice(0, 3));
 
       // Prepare Chart Data
       interface MonthlyData {
         [key: string]: number;
       }
 
-      const monthlyData: MonthlyData = result.reduce((acc: MonthlyData, tx: Transaction) => {
+      const monthlyData: MonthlyData = fuelTransactions.reduce((acc: MonthlyData, tx: Transaction) => {
         const month = new Date(tx.createdAt).toLocaleString('default', { month: 'short' });
         if (!acc[month]) {
           acc[month] = 0;

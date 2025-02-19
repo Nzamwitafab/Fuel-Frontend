@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Camera } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
@@ -20,6 +20,7 @@ const ProfileSettings = () => {
     const [success, setSuccess] = useState('');
     const [role, setRole] = useState('');
     const [userId, setUserId] = useState<number | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -42,6 +43,7 @@ const ProfileSettings = () => {
                 setName(userData.name);
                 setEmail(userData.email);
                 setRole(userData.role);
+                setProfilePicture(userData.picture || '/Images/avatar.png'); // Set default picture if none exists
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
@@ -71,23 +73,30 @@ const ProfileSettings = () => {
                 throw new Error('No access token found');
             }
 
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('email', email);
+            
+            if (selectedFile) {
+                formData.append('picture', selectedFile);
+            }
+
             const response = await axios.put(
                 `http://localhost:5000/api/users/update/${userId}`,
-                {
-                    name,
-                    email,
-                    picture: profilePicture,
-                },
+                formData,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'multipart/form-data'
                     }
                 }
             );
+
             setSuccess('Profile updated successfully!');
             setError('');
+            setProfilePicture(URL.createObjectURL(selectedFile!)); // Update profile picture preview
         } catch (error) {
+            console.error('Error updating profile:', error);
             setError('Error updating profile. Please try again.');
             setSuccess('');
         }
@@ -139,17 +148,22 @@ const ProfileSettings = () => {
 
             {editingPicture && (
                 <div className="mt-3">
-                    <input type="file" className="form-control" onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                if (event.target) {
-                                    setProfilePicture(event.target.result as string);
-                                }
-                            };
-                            reader.readAsDataURL(e.target.files[0]);
-                        }
-                    }} />
+                    <input 
+                        type="file" 
+                        className="form-control" 
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                                setSelectedFile(e.target.files[0]);
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                    if (event.target) {
+                                        setProfilePicture(event.target.result as string);
+                                    }
+                                };
+                                reader.readAsDataURL(e.target.files[0]);
+                            }
+                        }}
+                    />
                     <button className="btn btn-success mt-2" onClick={handleSavePicture}>
                         Save
                     </button>

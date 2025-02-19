@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight, Search, Fuel, Car, User, Phone, DollarSign, X, Check } from 'lucide-react';
 import axios from 'axios';
 
@@ -9,9 +9,61 @@ const RefuelingDashboard = () => {
     const [transactions, setTransactions] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [unitPrice, setUnitPrice] = useState<number | null>(null); // State to store unit price
+    const [unitPrice, setUnitPrice] = useState<number | null>(null);
+    const [selectedStation, setSelectedStation] = useState<number>(2);
+    const [selectedFuelType, setSelectedFuelType] = useState<string>('diesel');
+    const [vehicleDetails, setVehicleDetails] = useState<any>(null);
+    
+    // Mock data for stations and fuel types (replace with API data if available)
+    const stations = [
+        { id: 1, name: 'Station 1' },
+        { id: 2, name: 'Station 2' },
+        { id: 3, name: 'Station 3' }
+    ];
 
-    const totalAmount = quantity && unitPrice ? parseFloat(quantity) * unitPrice : 0;
+    const fuelTypes = [
+        { id: 'diesel', name: 'Diesel' },
+        { id: 'petrol', name: 'Petrol' }
+    ];
+
+    const fetchFuelPrice = async (stationId: number, fuelType: string) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const priceResponse = await axios.get(
+                'http://localhost:5000/api/fuel-prices/getfuelprice',
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    params: {
+                        stationId,
+                        fuelType
+                    }
+                }
+            );
+
+            if (priceResponse.data) {
+                setUnitPrice(priceResponse.data);
+            } else {
+                throw new Error('Failed to fetch fuel price.');
+            }
+        } catch (error) {
+            console.error('Error fetching fuel price:', error);
+            setError('Error fetching fuel price. Please try again.');
+        }
+    };
+
+    // Fetch fuel price when station or fuel type changes
+    useEffect(() => {
+        if (showDriverInfo && transactions.length === 0) {
+            fetchFuelPrice(selectedStation, selectedFuelType);
+        }
+    }, [selectedStation, selectedFuelType, showDriverInfo, transactions.length]);
 
     const handleSearch = async () => {
         if (!plateNumber.trim()) {
@@ -25,7 +77,26 @@ const RefuelingDashboard = () => {
                 throw new Error('No access token found');
             }
 
-            // Fetch fuel transactions for the vehicle
+            // First, fetch vehicle details
+            const vehicleResponse = await axios.get(
+                `http://localhost:5000/api/vehicles/plate/${plateNumber}`,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (vehicleResponse.data.error === "Vehicle not found") {
+                setError('Vehicle not found in the system.');
+                setShowDriverInfo(false);
+                return;
+            }
+
+            setVehicleDetails(vehicleResponse.data);
+
+            // Then fetch transaction history
             const transactionsResponse = await axios.get(
                 `http://localhost:5000/api/fuel-transactions/vehicle/${plateNumber}`,
                 {
@@ -35,7 +106,6 @@ const RefuelingDashboard = () => {
                     }
                 }
             );
-            console.log(transactionsResponse);
 
             if (transactionsResponse.data.length > 0) {
                 setTransactions(transactionsResponse.data);
@@ -47,38 +117,17 @@ const RefuelingDashboard = () => {
                 setShowDriverInfo(true);
                 setError('No refueling records found for this vehicle.');
                 setSuccess('');
-
-                // Fetch unit price for the fuel type
-                const fuelType = transactionsResponse.data; // Replace with actual fuel type if dynamic
-                const stationId = 2; // Replace with actual station ID if dynamic
-                const priceResponse = await axios.get(
-                    'http://localhost:5000/api/fuel-prices/getfuelprice',
-                    {
-                        headers: {
-                            // 'Authorization': `Bearer ${token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        params: {  // Ensure you send data as query parameters
-                            stationId,
-                            fuelType
-                        }
-                    }
-                );
-                // console.log(priceResponse)
-                
-
-                if (priceResponse.data) {
-                    setUnitPrice(priceResponse.data); // Set the unit price
-                } else {
-                    throw new Error('Failed to fetch fuel price.');
-                }
+                await fetchFuelPrice(selectedStation, selectedFuelType);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
             setError('Error fetching data. Please try again.');
             setSuccess('');
+            setShowDriverInfo(false);
         }
     };
+
+    const totalAmount = quantity && unitPrice ? parseFloat(quantity) * unitPrice : 0;
 
     interface TransactionResponse {
         stationId: number;
@@ -104,10 +153,10 @@ const RefuelingDashboard = () => {
             const response = await axios.post<TransactionResponse>(
                 'http://localhost:5000/api/fuel-transactions/record',
                 {
-                    stationId: 2, // Replace with actual station ID
+                    stationId: selectedStation,
                     vehiclePlateNumber: plateNumber,
-                    driverId: 2, // Replace with actual driver ID
-                    fuel_type: 'diesel', // Replace with actual fuel type
+                    driverId: vehicleDetails?.driverId || 2, // Use actual driver ID from vehicle details
+                    fuel_type: selectedFuelType,
                     total_litres: parseFloat(quantity)
                 },
                 {
@@ -168,7 +217,7 @@ const RefuelingDashboard = () => {
                 </div>
 
                 {/* Driver Information */}
-                {showDriverInfo && (
+                {showDriverInfo && vehicleDetails && (
                     <div className="card shadow mb-4 hover-shadow">
                         <div className="card-header bg-white border-bottom-0 py-3">
                             <h5 className="card-title mb-0 d-flex align-items-center">
@@ -183,7 +232,7 @@ const RefuelingDashboard = () => {
                                         <User className="text-secondary me-2" size={16} />
                                         <div>
                                             <p className="text-secondary small mb-0">Driver Name</p>
-                                            <p className="fw-medium mb-0">KABANO Festo</p>
+                                            <p className="fw-medium mb-0">{vehicleDetails.driverName || 'KABANO Festo'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -192,7 +241,7 @@ const RefuelingDashboard = () => {
                                         <Phone className="text-secondary me-2" size={16} />
                                         <div>
                                             <p className="text-secondary small mb-0">Contact</p>
-                                            <p className="fw-medium mb-0">+250785206973</p>
+                                            <p className="fw-medium mb-0">{vehicleDetails.driverContact || '+250785206973'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -215,22 +264,43 @@ const RefuelingDashboard = () => {
                                 <div className="row g-4 mb-4">
                                     <div className="col-md-6">
                                         <label className="form-label fw-medium text-secondary small">
-                                            Plate Number
+                                            Station
                                         </label>
-                                        <input
-                                            type="text"
-                                            value={plateNumber}
-                                            disabled
-                                            className="form-control bg-light"
-                                        />
+                                        <select
+                                            className="form-select"
+                                            value={selectedStation}
+                                            onChange={(e) => setSelectedStation(Number(e.target.value))}
+                                        >
+                                            {stations.map(station => (
+                                                <option key={station.id} value={station.id}>
+                                                    {station.name}
+                                                </option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="col-md-6">
                                         <label className="form-label fw-medium text-secondary small">
                                             Fuel Type
                                         </label>
+                                        <select
+                                            className="form-select"
+                                            value={selectedFuelType}
+                                            onChange={(e) => setSelectedFuelType(e.target.value)}
+                                        >
+                                            {fuelTypes.map(type => (
+                                                <option key={type.id} value={type.id}>
+                                                    {type.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="form-label fw-medium text-secondary small">
+                                            Plate Number
+                                        </label>
                                         <input
                                             type="text"
-                                            value="Diesel"
+                                            value={plateNumber}
                                             disabled
                                             className="form-control bg-light"
                                         />
@@ -279,6 +349,7 @@ const RefuelingDashboard = () => {
                                             setQuantity('');
                                             setError('');
                                             setSuccess('');
+                                            setVehicleDetails(null);
                                         }}
                                     >
                                         <X className="me-2" size={16} />

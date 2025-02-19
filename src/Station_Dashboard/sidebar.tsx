@@ -8,7 +8,7 @@ interface User {
     id: number;
     name: string;
     role: string;
-    profile_picture?: string;
+    picture?: string;
 }
 
 interface DecodedToken {
@@ -238,7 +238,7 @@ const SidebarContent: React.FC<{
             <div className="text-center p-4 border-bottom">
                 <div className="position-relative d-inline-block mb-3">
                     <img
-                        src={user?.profile_picture || "/Images/icon.png"}
+                        src={user?.picture || "/Images/avatar.png"}
                         alt="Profile"
                         className="rounded-circle border"
                         width={70}

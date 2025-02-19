@@ -9,12 +9,15 @@ const ReportMain = () => {
     interface Transaction {
         id: string;
         createdAt: string;
-        Station: { name: string };
-        Vehicle: { plateNumber: string };
-        Driver: { name: string };
+        stationId: number;
+        vehicleId: number;
+        driverId: number;
         fuel_type: string;
         total_litres: number;
         totalPrice: number;
+        Station?: { name: string };
+        Vehicle?: { plateNumber: string };
+        Driver?: { name: string };
     }
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -49,11 +52,40 @@ const ReportMain = () => {
             setLoading(true);
             const token = localStorage.getItem('accessToken');
             if (!token) throw new Error('No access token found');
-            const response = await axios.get(`http://localhost:5000/api/fuel-transactions/user/${userId}`, {
+
+            // Fetch transactions
+            const response = await axios.get(`http://localhost:5000/api/fuel-transactions/${userId}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setTransactions(response.data);
-            setFilteredTransactions(response.data);
+
+            // Fetch additional details for each transaction
+            const transactionsWithDetails = await Promise.all(
+                response.data.map(async (t: Transaction) => {
+                    const [stationResponse, vehicleResponse, driverResponse] = await Promise.all([
+                        axios.get(`http://localhost:5000/api/stations/${t.stationId}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        }),
+                        axios.get(`http://localhost:5000/api/vehicles/${t.vehicleId}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        }),
+                        axios.get(`http://localhost:5000/api/drivers/${t.driverId}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        }),
+                    ]);
+
+                    return {
+                        ...t,
+                        Station: stationResponse.data,
+                        Vehicle: vehicleResponse.data,
+                        Driver: driverResponse.data,
+                        total_litres: parseFloat(t.total_litres), // Convert to number
+                        totalPrice: parseFloat(t.totalPrice), // Convert to number
+                    };
+                })
+            );
+
+            setTransactions(transactionsWithDetails);
+            setFilteredTransactions(transactionsWithDetails);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 setError(error.response?.data?.message || 'Error fetching transactions');
@@ -83,9 +115,9 @@ const ReportMain = () => {
         const headers = ['Date/Time', 'Station', 'Plate No.', 'Driver', 'Fuel Type', 'Quantity (L)', 'Amount (RWF)'];
         const csvData = filteredTransactions.map(t => [
             new Date(t.createdAt).toLocaleString(),
-            t.Station.name,
-            t.Vehicle.plateNumber,
-            t.Driver.name,
+            t.Station?.name || 'N/A',
+            t.Vehicle?.plateNumber || 'N/A',
+            t.Driver?.name || 'N/A',
             t.fuel_type,
             t.total_litres,
             t.totalPrice
@@ -206,9 +238,9 @@ const ReportMain = () => {
                             {filteredTransactions.map(t => (
                                 <tr key={t.id}>
                                     <td>{new Date(t.createdAt).toLocaleString()}</td>
-                                    <td>{t.Station.name}</td>
-                                    <td>{t.Vehicle.plateNumber}</td>
-                                    <td>{t.Driver.name}</td>
+                                    <td>{t.Station?.name || 'N/A'}</td>
+                                    <td>{t.Vehicle?.plateNumber || 'N/A'}</td>
+                                    <td>{t.Driver?.name || 'N/A'}</td>
                                     <td>{t.fuel_type}</td>
                                     <td>{t.total_litres}</td>
                                     <td>{t.totalPrice}</td>

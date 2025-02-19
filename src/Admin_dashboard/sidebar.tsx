@@ -82,7 +82,7 @@ const Sidebar: React.FC = () => {
                 {/* Display user's profile picture or default avatar */}
                 <div className="position-relative">
                     <img
-                        src={user?.picture || '/Images/default-avatar.png'} // Use default avatar if no picture is available
+                        src={user?.picture || '/Images/avatar.png'} // Use default avatar if no picture is available
                         alt="Profile"
                         className="rounded-circle me-3"
                         width="50"

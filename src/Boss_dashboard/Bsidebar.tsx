@@ -83,7 +83,7 @@ const Sidebar: React.FC = () => {
             <div className="d-flex flex-column align-items-center mt-5">
                 <div className="position-relative mb-3">
                     <img
-                        src={user.image || '/Images/icon.png'}
+                        src={user.image || '/Images/avatar.png'}
                         alt="Profile"
                         className="rounded-circle border"
                         width={60}
@@ -99,7 +99,7 @@ const Sidebar: React.FC = () => {
                         onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
                         onError={(e) => {
                             const img = e.target as HTMLImageElement;
-                            img.src = '/Images/icon.png';
+                            img.src = '/Images/avatar.png';
                         }}
                     />
                 </div>
