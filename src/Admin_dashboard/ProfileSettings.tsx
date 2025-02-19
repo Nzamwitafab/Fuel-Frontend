@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, Camera } from 'lucide-react';
+import axios from 'axios';
+import { jwtDecode } from 'jwt-decode'; // Import jwt-decode to decode the token
+
+interface DecodedToken {
+    id: number;
+    role: string;
+    // Add other fields if needed
+}
 
 const ProfileSettings = () => {
     const [name, setName] = useState('Fabrice');
@@ -7,6 +15,43 @@ const ProfileSettings = () => {
     const [newPassword, setNewPassword] = useState('');
     const [notification, setNotification] = useState(true);
     const [editingPicture, setEditingPicture] = useState(false);
+    const [profilePicture, setProfilePicture] = useState('/Images/profile.jpeg');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [role, setRole] = useState(''); // Add role state
+    const [userId, setUserId] = useState<number | null>(null); // Add userId state
+
+    // Fetch user data (including role) on component mount
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    throw new Error('No access token found');
+                }
+
+                // Decode the token to get the user ID
+                const decodedToken = jwtDecode<DecodedToken>(token);
+                setUserId(decodedToken.id); // Set the user ID from the decoded token
+
+                // Fetch user data using the decoded user ID
+                const response = await axios.get(`http://localhost:5000/api/users/${decodedToken.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const userData = response.data;
+                setName(userData.name);
+                setEmail(userData.email);
+                setRole(userData.role); // Set the role from the fetched data
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        };
+
+        fetchUserData();
+    }, []);
 
     const handlePictureClick = () => {
         setEditingPicture(true);
@@ -14,6 +59,42 @@ const ProfileSettings = () => {
 
     const handleSavePicture = () => {
         setEditingPicture(false);
+        // Logic to save the picture (not implemented yet)
+    };
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userId) {
+            setError('User ID is missing. Please log in again.');
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            const response = await axios.put(
+                `http://localhost:5000/api/users/update/${userId}`,
+                {
+                    name,
+                    email,
+                    picture: profilePicture, // Placeholder for picture URL
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            setSuccess('Profile updated successfully!');
+            setError('');
+        } catch (error) {
+            setError('Error updating profile. Please try again.');
+            setSuccess('');
+        }
     };
 
     return (
@@ -21,29 +102,82 @@ const ProfileSettings = () => {
             <h2>Profile Settings</h2>
             <div className="text-center">
                 <div className="rounded-circle overflow-hidden" style={{ width: 100, height: 100, cursor: 'pointer' }} onClick={handlePictureClick}>
-                    <img src="/Images/profile.jpeg" alt="Profile" style={{ width: '100%', height: '100%' }} />
+                    <img src={profilePicture} alt="Profile" style={{ width: '100%', height: '100%' }} />
                 </div>
-                <a href="#" className="d-block text-primary mt-2">Update Profile Picture</a>
+                <a href="#" className="d-block text-primary mt-2" onClick={handlePictureClick}>
+                    <Camera size={16} className="me-2" />
+                    Update Profile Picture
+                </a>
             </div>
 
             {editingPicture && (
                 <div className="mt-3">
-                    <input type="file" className="form-control" />
-                    <button className="btn btn-success mt-2" onClick={handleSavePicture}>Save</button>
+                    <input type="file" className="form-control" onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                if (event.target) {
+                                    setProfilePicture(event.target.result as string);
+                                }
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }} />
+                    <button className="btn btn-success mt-2" onClick={handleSavePicture}>
+                        Save
+                    </button>
                 </div>
             )}
 
+            <form onSubmit={handleUpdateProfile} className="mt-4">
+                <div className="mb-3">
+                    <label>Name:</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label>Email:</label>
+                    <input
+                        type="email"
+                        className="form-control"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label>Role:</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        value={role}
+                        readOnly // Make the role field read-only
+                    />
+                </div>
+                {error && <div className="alert alert-danger">{error}</div>}
+                {success && <div className="alert alert-success">{success}</div>}
+                <button type="submit" className="btn btn-primary">
+                    Update Profile
+                </button>
+            </form>
+
             <div className="mt-4">
-                <label>Name:</label>
-                <input type="text" className="form-control" value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="mt-3">
-                <label>Email:</label>
-                <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="mt-3">
-                <label>New Password:</label>
-                <input type="password" className="form-control" placeholder="Change Password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                <label>Notification Settings:</label>
+                <div className="form-check form-switch">
+                    <input
+                        type="checkbox"
+                        className="form-check-input"
+                        checked={notification}
+                        onChange={(e) => setNotification(e.target.checked)}
+                    />
+                    <label className="form-check-label">Enable Notifications</label>
+                </div>
             </div>
         </div>
     );
