@@ -1,13 +1,41 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Link } from 'react-router-dom';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Forgot password request for:', email);
+        setIsLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const response = await axios.post(
+                'http://localhost:5000/api/auth/forgot-password',
+                { email },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            setSuccess('Password reset link has been sent to your email!');
+            setEmail(''); // Clear the email field after success
+        } catch (error: any) {
+            setError(
+                error.response?.data?.message || 
+                'Failed to send reset link. Please try again.'
+            );
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -18,6 +46,18 @@ const ForgotPassword = () => {
                     <div className="w-75">
                         <h1 className="fw-bold mb-2">Forgot Password? 🤔</h1>
                         <p className="text-muted mb-4">Enter your email to receive a password reset link.</p>
+
+                        {error && (
+                            <div className="alert alert-danger" role="alert">
+                                {error}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="alert alert-success" role="alert">
+                                {success}
+                            </div>
+                        )}
 
                         <form onSubmit={handleSubmit}>
                             <div className="mb-3">
@@ -33,16 +73,28 @@ const ForgotPassword = () => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
+                                    disabled={isLoading}
                                 />
                             </div>
 
-                            <button type="submit" className="btn btn-primary w-100">
-                                Send Reset Link
+                            <button 
+                                type="submit" 
+                                className="btn btn-primary w-100"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Sending...
+                                    </>
+                                ) : (
+                                    'Send Reset Link'
+                                )}
                             </button>
                         </form>
 
                         <div className="mt-3 text-center">
-                            <Link to="/" className="text-primary text-decoration-none">Back to Login</Link>
+                            <Link to="/login" className="text-primary text-decoration-none">Back to Login</Link>
                         </div>
                     </div>
                 </div>

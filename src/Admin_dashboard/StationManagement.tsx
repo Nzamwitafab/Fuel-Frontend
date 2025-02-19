@@ -346,7 +346,7 @@ const StationManagement: React.FC = () => {
     }
 
     return (
-        <div className="container-fluid bg-light min-vh-100">
+        <div className="container-fluid bg-light min-vh-100" style={{width: '82%', margin: '0px 260px'}}>
             <div className="row">
                 <div className="col-md-10 offset-md-1 py-4">
                     <div className="d-flex justify-content-between align-items-center mb-4">

@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Camera } from 'lucide-react';
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode'; // Import jwt-decode to decode the token
+import { jwtDecode } from 'jwt-decode';
 
 interface DecodedToken {
     id: number;
     role: string;
-    // Add other fields if needed
 }
 
 const ProfileSettings = () => {
     const [name, setName] = useState('Fabrice');
     const [email, setEmail] = useState('Fabrice@gmail.com');
+    const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [notification, setNotification] = useState(true);
     const [editingPicture, setEditingPicture] = useState(false);
     const [profilePicture, setProfilePicture] = useState('/Images/profile.jpeg');
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [role, setRole] = useState(''); // Add role state
-    const [userId, setUserId] = useState<number | null>(null); // Add userId state
+    const [role, setRole] = useState('');
+    const [userId, setUserId] = useState<number | null>(null);
 
-    // Fetch user data (including role) on component mount
     useEffect(() => {
         const fetchUserData = async () => {
             try {
@@ -30,11 +29,9 @@ const ProfileSettings = () => {
                     throw new Error('No access token found');
                 }
 
-                // Decode the token to get the user ID
                 const decodedToken = jwtDecode<DecodedToken>(token);
-                setUserId(decodedToken.id); // Set the user ID from the decoded token
+                setUserId(decodedToken.id);
 
-                // Fetch user data using the decoded user ID
                 const response = await axios.get(`http://localhost:5000/api/users/${decodedToken.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -44,7 +41,7 @@ const ProfileSettings = () => {
                 const userData = response.data;
                 setName(userData.name);
                 setEmail(userData.email);
-                setRole(userData.role); // Set the role from the fetched data
+                setRole(userData.role);
             } catch (error) {
                 console.error('Error fetching user data:', error);
             }
@@ -59,7 +56,6 @@ const ProfileSettings = () => {
 
     const handleSavePicture = () => {
         setEditingPicture(false);
-        // Logic to save the picture (not implemented yet)
     };
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -80,7 +76,7 @@ const ProfileSettings = () => {
                 {
                     name,
                     email,
-                    picture: profilePicture, // Placeholder for picture URL
+                    picture: profilePicture,
                 },
                 {
                     headers: {
@@ -93,6 +89,37 @@ const ProfileSettings = () => {
             setError('');
         } catch (error) {
             setError('Error updating profile. Please try again.');
+            setSuccess('');
+        }
+    };
+
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                throw new Error('No access token found');
+            }
+
+            await axios.put(
+                'http://localhost:5000/api/auth/change-password',
+                {
+                    oldPassword,
+                    newPassword
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            setSuccess('Password changed successfully!');
+            setError('');
+            setOldPassword('');
+            setNewPassword('');
+        } catch (error) {
+            setError('Error changing password. Please check your old password and try again.');
             setSuccess('');
         }
     };
@@ -114,14 +141,13 @@ const ProfileSettings = () => {
                 <div className="mt-3">
                     <input type="file" className="form-control" onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
-                            const file = e.target.files[0];
                             const reader = new FileReader();
                             reader.onload = (event) => {
                                 if (event.target) {
                                     setProfilePicture(event.target.result as string);
                                 }
                             };
-                            reader.readAsDataURL(file);
+                            reader.readAsDataURL(e.target.files[0]);
                         }
                     }} />
                     <button className="btn btn-success mt-2" onClick={handleSavePicture}>
@@ -157,15 +183,43 @@ const ProfileSettings = () => {
                         type="text"
                         className="form-control"
                         value={role}
-                        readOnly // Make the role field read-only
+                        readOnly
                     />
                 </div>
-                {error && <div className="alert alert-danger">{error}</div>}
-                {success && <div className="alert alert-success">{success}</div>}
                 <button type="submit" className="btn btn-primary">
                     Update Profile
                 </button>
             </form>
+
+            <form onSubmit={handleChangePassword} className="mt-4">
+                <h3>Change Password</h3>
+                <div className="mb-3">
+                    <label>Current Password:</label>
+                    <input
+                        type="password"
+                        className="form-control"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <div className="mb-3">
+                    <label>New Password:</label>
+                    <input
+                        type="password"
+                        className="form-control"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                    />
+                </div>
+                <button type="submit" className="btn btn-primary">
+                    Change Password
+                </button>
+            </form>
+
+            {error && <div className="alert alert-danger mt-3">{error}</div>}
+            {success && <div className="alert alert-success mt-3">{success}</div>}
 
             <div className="mt-4">
                 <label>Notification Settings:</label>

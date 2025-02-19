@@ -13,14 +13,13 @@ interface MenuItem {
 interface DecodedToken {
     id: number;
     role: string;
-    // Add other fields if needed
 }
 
 interface User {
     id: number;
     name: string;
     picture?: string;
-    role: string; // Add role property
+    role: string; 
 }
 
 const Sidebar: React.FC = () => {

@@ -4,7 +4,6 @@ import { ReactElement } from 'react';
 import Layout from './Admin_dashboard/Layout';
 import Dashboard from './Admin_dashboard/Dashboard';
 import LoginPage from './pages/Login';
-import ChangePassword from './pages/ChangePassword';
 import ForgotPassword from './pages/Forgot';
 import StationManagement from './Admin_dashboard/StationManagement';
 import UserManagement from './Admin_dashboard/UserManagement';
@@ -72,7 +71,6 @@ function App() {
     <Routes>
 
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/change-password" element={<ChangePassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/forgot" element={<ForgotPassword />} />
 

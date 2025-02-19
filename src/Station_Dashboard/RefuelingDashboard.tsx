@@ -9,9 +9,9 @@ const RefuelingDashboard = () => {
     const [transactions, setTransactions] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [unitPrice, setUnitPrice] = useState<number | null>(null); // State to store unit price
 
-    const unitPrice = 1600;
-    const totalAmount = quantity ? parseFloat(quantity) * unitPrice : 0;
+    const totalAmount = quantity && unitPrice ? parseFloat(quantity) * unitPrice : 0;
 
     const handleSearch = async () => {
         if (!plateNumber.trim()) {
@@ -25,7 +25,8 @@ const RefuelingDashboard = () => {
                 throw new Error('No access token found');
             }
 
-            const response = await axios.get(
+            // Fetch fuel transactions for the vehicle
+            const transactionsResponse = await axios.get(
                 `http://localhost:5000/api/fuel-transactions/vehicle/${plateNumber}`,
                 {
                     headers: {
@@ -34,9 +35,10 @@ const RefuelingDashboard = () => {
                     }
                 }
             );
+            console.log(transactionsResponse);
 
-            if (response.data.length > 0) {
-                setTransactions(response.data);
+            if (transactionsResponse.data.length > 0) {
+                setTransactions(transactionsResponse.data);
                 setShowDriverInfo(true);
                 setError('');
                 setSuccess('Vehicle has already been refueled.');
@@ -45,10 +47,35 @@ const RefuelingDashboard = () => {
                 setShowDriverInfo(true);
                 setError('No refueling records found for this vehicle.');
                 setSuccess('');
+
+                // Fetch unit price for the fuel type
+                const fuelType = transactionsResponse.data; // Replace with actual fuel type if dynamic
+                const stationId = 2; // Replace with actual station ID if dynamic
+                const priceResponse = await axios.get(
+                    'http://localhost:5000/api/fuel-prices/getfuelprice',
+                    {
+                        headers: {
+                            // 'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        params: {  // Ensure you send data as query parameters
+                            stationId,
+                            fuelType
+                        }
+                    }
+                );
+                // console.log(priceResponse)
+                
+
+                if (priceResponse.data) {
+                    setUnitPrice(priceResponse.data); // Set the unit price
+                } else {
+                    throw new Error('Failed to fetch fuel price.');
+                }
             }
         } catch (error) {
-            console.error('Error fetching transactions:', error);
-            setError('Error fetching transactions. Please try again.');
+            console.error('Error fetching data:', error);
+            setError('Error fetching data. Please try again.');
             setSuccess('');
         }
     };
@@ -226,7 +253,7 @@ const RefuelingDashboard = () => {
                                         </label>
                                         <input
                                             type="text"
-                                            value="1,600"
+                                            value={unitPrice ? unitPrice.toLocaleString() : 'Loading...'}
                                             disabled
                                             className="form-control bg-light"
                                         />
