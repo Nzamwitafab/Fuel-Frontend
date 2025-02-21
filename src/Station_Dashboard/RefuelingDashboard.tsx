@@ -435,7 +435,7 @@ const RefuelingDashboard = () => {
         )}
 
         {/* Refueling Form */}
-        {!showDriverInfo && (
+        {showDriverInfo && (
           <div className="card shadow hover-shadow">
             <div className="card-header bg-white border-bottom-0 py-3">
               <h5 className="card-title mb-0 d-flex align-items-center">
