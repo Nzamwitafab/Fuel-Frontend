@@ -12,19 +12,27 @@ interface Driver {
     status?: string;
 }
 
+interface Vehicle {
+    id: number;
+    plateNumber: string;
+    // Add other vehicle properties as needed
+}
+
 const DriverManagement: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [drivers, setDrivers] = useState<Driver[]>([]);
+    const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All Status');
-    const [formData, setFormData] = useState<Driver>({
+    const [formData, setFormData] = useState<Driver & { plateNumber?: string }>({
         id: 0,
         name: '',
         licenseNumber: '',
         vehicleId: 0,
         email: '',
         phone: '',
-        status: 'Active'
+        status: 'Active',
+        plateNumber: ''
     });
     const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
 
@@ -38,6 +46,15 @@ const DriverManagement: React.FC = () => {
         };
     };
 
+    const fetchVehicles = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/vehicles/all', getConfig());
+            setVehicles(response.data);
+        } catch (error) {
+            console.error('Error fetching vehicles:', error);
+        }
+    };
+
     const fetchDrivers = async () => {
         try {
             const response = await axios.get('http://localhost:5000/api/drivers/all', getConfig());
@@ -49,45 +66,49 @@ const DriverManagement: React.FC = () => {
 
     useEffect(() => {
         fetchDrivers();
+        fetchVehicles();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Validate name
+            // Existing validations
             if (formData.name.trim().length < 2) {
                 alert('Name must be at least 2 characters long');
                 return;
             }
 
-            // Validate license number format (16 digits)
             const licenseNumberRegex = /^\d{16}$/;
             if (!licenseNumberRegex.test(formData.licenseNumber)) {
                 alert('License number must be exactly 16 digits');
                 return;
             }
 
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (formData.email && !emailRegex.test(formData.email)) {
                 alert('Please enter a valid email address');
                 return;
             }
 
-            // Validate phone number (digits only)
             const phoneRegex = /^\d{10}$/;
             if (formData.phone && !phoneRegex.test(formData.phone)) {
                 alert('Phone number must be 10 digits');
                 return;
             }
 
-            // Create payload with required fields
+            // Find vehicle ID based on plate number
+            const selectedVehicle = vehicles.find(v => v.plateNumber === formData.plateNumber);
+            if (!selectedVehicle) {
+                alert('Please select a valid vehicle');
+                return;
+            }
+
             const payload = {
                 name: formData.name.trim(),
                 licenseNumber: formData.licenseNumber,
-                vehicleId: 1, // Set default vehicleId as required by API
+                vehicleId: selectedVehicle.id,
                 email: formData.email?.trim(),
-                phone: formData.phone?.trim(),
+                PhoneNumber: formData.phone?.trim(),
                 status: formData.status
             };
 
@@ -126,7 +147,7 @@ const DriverManagement: React.FC = () => {
         }
     };
 
-    // Rest of the component remains unchanged
+    // Existing handlers remain the same
     const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this driver?')) {
             try {
@@ -144,8 +165,12 @@ const DriverManagement: React.FC = () => {
     };
 
     const handleEdit = (driver: Driver) => {
+        const driverVehicle = vehicles.find(v => v.id === driver.vehicleId);
         setEditingDriver(driver);
-        setFormData(driver);
+        setFormData({
+            ...driver,
+            plateNumber: driverVehicle?.plateNumber || ''
+        });
         setIsModalOpen(true);
     };
 
@@ -160,7 +185,8 @@ const DriverManagement: React.FC = () => {
                 vehicleId: 0,
                 email: '',
                 phone: '',
-                status: 'Active'
+                status: 'Active',
+                plateNumber: ''
             });
         }
     };
@@ -203,33 +229,37 @@ const DriverManagement: React.FC = () => {
             <div className="card">
                 <div className="card-body">
                     <ul className="list-group">
-                        {filteredDrivers.map((driver) => (
-                            <li key={driver.id} className="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 className="mb-1">{driver.name}</h5>
-                                    <p className="mb-0">{driver.email}</p>
-                                    <p className="mb-0">{driver.phone}</p>
-                                    <p className="mb-0">{driver.licenseNumber}</p>
-                                </div>
-                                <div>
-                                    <button
-                                        className="btn btn-link p-0 me-2"
-                                        onClick={() => handleEdit(driver)}
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        className="btn btn-link text-danger p-0"
-                                        onClick={() => handleDelete(driver.id)}
-                                    >
-                                        Delete
-                                    </button>
-                                    <span className={`badge ${driver.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>
-                                        ●
-                                    </span>
-                                </div>
-                            </li>
-                        ))}
+                        {filteredDrivers.map((driver) => {
+                            const assignedVehicle = vehicles.find(v => v.id === driver.vehicleId);
+                            return (
+                                <li key={driver.id} className="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 className="mb-1">{driver.name}</h5>
+                                        <p className="mb-0">Email: {driver.email}</p>
+                                        <p className="mb-0">Phone: {driver.phone}</p>
+                                        <p className="mb-0">License: {driver.licenseNumber}</p>
+                                        <p className="mb-0">Vehicle: {assignedVehicle?.plateNumber || 'Not assigned'}</p>
+                                    </div>
+                                    <div>
+                                        <button
+                                            className="btn btn-link p-0 me-2"
+                                            onClick={() => handleEdit(driver)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="btn btn-link text-danger p-0"
+                                            onClick={() => handleDelete(driver.id)}
+                                        >
+                                            Delete
+                                        </button>
+                                        <span className={`badge ${driver.status === 'Active' ? 'bg-success' : 'bg-danger'}`}>
+                                            ●
+                                        </span>
+                                    </div>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             </div>
@@ -284,6 +314,20 @@ const DriverManagement: React.FC = () => {
                                         required
                                         pattern="\d{16}"
                                     />
+                                    <select
+                                        className="form-select mb-3"
+                                        name="plateNumber"
+                                        value={formData.plateNumber}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="">Select Vehicle</option>
+                                        {vehicles.map(vehicle => (
+                                            <option key={vehicle.id} value={vehicle.plateNumber}>
+                                                {vehicle.plateNumber}
+                                            </option>
+                                        ))}
+                                    </select>
                                     <select
                                         className="form-select mb-3"
                                         name="status"

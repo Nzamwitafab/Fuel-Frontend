@@ -1,13 +1,73 @@
 import React, { useState, useEffect } from "react";
-import { Badge, Offcanvas, Button } from "react-bootstrap";
+import { Offcanvas, Button } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { List, X } from "react-bootstrap-icons";
+import { jwtDecode } from "jwt-decode";
+
+interface User {
+    id: number;
+    name: string;
+    role: string;
+    picture?: string;
+}
+
+interface DecodedToken {
+    id: number;
+    role: string;
+    iat: number;
+    exp: number;
+}
 
 const Sidebar: React.FC = () => {
-    const location = useLocation();
     const navigate = useNavigate();
     const [show, setShow] = useState(false);
     const [animateButton, setAnimateButton] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const token = localStorage.getItem("accessToken");
+                if (!token) {
+                    throw new Error("No access token found");
+                }
+
+                const decoded = jwtDecode(token) as DecodedToken;
+                const userId = decoded.id;
+
+                const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem("accessToken");
+                        localStorage.removeItem("refreshToken");
+                        navigate("/login");
+                        return;
+                    }
+                    throw new Error("Failed to fetch user data");
+                }
+
+                const userData = await response.json();
+                setUser(userData);
+            } catch (error) {
+                if (error instanceof Error) {
+                    console.error("Error fetching transactions:", error.message);
+                } else {
+                    console.error("An unknown error occurred");
+                }
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [navigate]);
 
     const handleLogout = () => {
         localStorage.removeItem("accessToken");
@@ -27,163 +87,186 @@ const Sidebar: React.FC = () => {
 
     return (
         <>
-            {/* Universal Toggle Button */}
             <Button
                 variant="dark"
                 onClick={() => setShow(true)}
-                className={`position-fixed top-2 start-2 m-3 shadow-lg ${animateButton ? 'pulse-animation' : ''
-                    }`}
+                className={`position-fixed top-2 start-2 m-3 shadow-lg ${animateButton ? "pulse-animation" : ""}`}
                 style={{
                     zIndex: 1050,
-                    borderRadius: '50%',
-                    width: '50px',
-                    height: '50px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'transform 0.3s ease'
+                    borderRadius: "50%",
+                    width: "50px",
+                    height: "50px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "transform 0.3s ease",
                 }}
             >
                 <List size={24} />
             </Button>
 
-            {/* Universal Offcanvas Sidebar */}
             <Offcanvas
                 show={show}
                 onHide={() => setShow(false)}
                 className="sidebar-width"
-                style={{ transition: 'transform 0.3s ease-in-out' }}
+                style={{ transition: "transform 0.3s ease-in-out" }}
             >
-                <Offcanvas.Header className="border-bottom" style={{ padding: '1.5rem' }}>
+                <Offcanvas.Header className="border-bottom" style={{ padding: "1.5rem" }}>
                     <Offcanvas.Title className="d-flex align-items-center">
-                        <img
-                            src="/Images/icon.png"
-                            alt="Logo"
-                            height="30"
-                            className="me-2"
-                        />
+                        <img src="/Images/icon.png" alt="Logo" height="30" className="me-2" />
                         <span className="fw-bold">Station Management</span>
                     </Offcanvas.Title>
                     <Button
                         variant="link"
                         onClick={() => setShow(false)}
                         className="text-dark p-0"
-                        style={{ fontSize: '1.5rem' }}
+                        style={{ fontSize: "1.5rem" }}
                     >
                         <X size={24} />
                     </Button>
                 </Offcanvas.Header>
                 <Offcanvas.Body className="p-0">
-                    <SidebarContent handleLogout={handleLogout} setShow={setShow} />
+                    <SidebarContent
+                        handleLogout={handleLogout}
+                        setShow={setShow}
+                        user={user}
+                        loading={loading}
+                        navigate={navigate}
+                    />
                 </Offcanvas.Body>
             </Offcanvas>
 
             <style>
                 {`
-                    .sidebar-width {
-                        width: 350px !important;
-                        
-                    }
-                    
-                    .offcanvas {
-                        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-                        background-color: white;
-                        height: 100vh;
-                    }
-                    
-                    .pulse-animation {
-                        animation: pulse 1s;
-                    }
-                    
-                    @keyframes pulse {
-                        0% {
-                            transform: scale(1);
-                            box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
-                        }
-                        
-                        70% {
-                            transform: scale(1.1);
-                            box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
-                        }
-                        
-                        100% {
-                            transform: scale(1);
-                            box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-                        }
-                    }
-                    
-                    .nav-link-hover {
-                        transition: all 0.3s ease;
-                    }
-                    
-                    .nav-link-hover:hover {
-                        background-color: rgba(0, 0, 0, 0.05);
-                        transform: translateX(5px);
-                    }
+          .sidebar-width {
+            width: 350px !important;
+          }
+          
+          .offcanvas {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            background-color: white;
+            height: 100vh;
+          }
+          
+          .pulse-animation {
+            animation: pulse 1s;
+          }
+          
+          @keyframes pulse {
+            0% {
+              transform: scale(1);
+              box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+            }
+            
+            70% {
+              transform: scale(1.1);
+              box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+            }
+            
+            100% {
+              transform: scale(1);
+              box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+            }
+          }
+          
+          .nav-link-hover {
+            transition: all 0.3s ease;
+          }
+          
+          .nav-link-hover:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: translateX(5px);
+          }
 
-                    /* Add slide animation for sidebar */
-                    .offcanvas {
-                        transition: transform 0.3s ease-in-out !important;
-                    }
+          .profile-skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+          }
 
-                    .offcanvas.showing,
-                    .offcanvas.hiding,
-                    .offcanvas.show {
-                        transform: none !important;
-                    }
-                `}
+          @keyframes skeleton-loading {
+            0% {
+              background-color: #f0f0f0;
+            }
+            100% {
+              background-color: #e0e0e0;
+            }
+          }
+        `}
             </style>
         </>
     );
 };
 
-// SidebarContent component remains the same as in your current code
 const SidebarContent: React.FC<{
     handleLogout: () => void;
     setShow: (show: boolean) => void;
-}> = ({ handleLogout, setShow }) => {
+    user: User | null;
+    loading: boolean;
+    navigate: (path: string) => void;
+}> = ({ handleLogout, setShow, user, loading, navigate }) => {
     const location = useLocation();
 
     const handleClick = () => {
         setShow(false);
     };
 
-    return (
-        <div className="d-flex flex-column bg-white h-100">
-            {/* Profile Section */}
+    const handleProfileClick = () => {
+        navigate('/station/profile');
+        setShow(false);
+    };
+
+    const renderProfileSection = () => {
+        if (loading) {
+            return (
+                <div className="text-center p-4 border-bottom">
+                    <div className="position-relative d-inline-block mb-3">
+                        <div
+                            className="rounded-circle profile-skeleton"
+                            style={{
+                                width: "70px",
+                                height: "70px",
+                                border: "3px solid #f0f0f0",
+                            }}
+                        />
+                    </div>
+                    <div className="profile-skeleton w-75 mx-auto" style={{ height: "20px", marginBottom: "8px" }} />
+                    <div className="profile-skeleton w-50 mx-auto" style={{ height: "16px" }} />
+                </div>
+            );
+        }
+
+        return (
             <div className="text-center p-4 border-bottom">
                 <div className="position-relative d-inline-block mb-3">
                     <img
-                        src="/Images/profile.jpeg"
+                        src={user?.picture || "/Images/avatar.png"}
                         alt="Profile"
                         className="rounded-circle border"
                         width={70}
                         height={70}
                         style={{
                             border: "3px solid #f0f0f0",
-                            transition: 'transform 0.3s ease',
-                            cursor: 'pointer'
+                            transition: "transform 0.3s ease",
+                            cursor: "pointer",
+                            objectFit: "cover",
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
-                        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onClick={handleProfileClick}
+                        onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+                        onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                        onError={(e) => {
+                            e.currentTarget.src = "/Images/icon.png";
+                        }}
                     />
-                    <Badge
-                        bg="danger"
-                        className="position-absolute top-0 start-100 translate-middle rounded-circle"
-                        style={{
-                            padding: "0.4rem 0.6rem",
-                            fontSize: "0.8rem",
-                            marginLeft: "-0.5rem",
-                        }}
-                    >
-                        3
-                    </Badge>
                 </div>
-                <h5 className="fw-bold text-dark mb-0">Uwimana Sarah</h5>
-                <small className="text-muted">Station Manager</small>
+                <h5 className="fw-bold text-dark mb-0">{user?.name || "Guest User"}</h5>
+                <small className="text-muted">{user?.role || "Loading..."}</small>
             </div>
+        );
+    };
 
-            {/* Navigation Links */}
+    return (
+        <div className="d-flex flex-column bg-white h-100">
+            {renderProfileSection()}
+
             <nav className="flex-grow-1 p-4">
                 <ul className="list-unstyled mb-0">
                     {[
@@ -199,7 +282,8 @@ const SidebarContent: React.FC<{
                                 style={{
                                     fontSize: "1.1rem",
                                     color: location.pathname === item.to ? "#fff" : "#333",
-                                    backgroundColor: location.pathname === item.to ? "#000" : "transparent",
+                                    backgroundColor:
+                                        location.pathname === item.to ? "#000" : "transparent",
                                 }}
                             >
                                 <span className="me-2">{item.icon}</span>
@@ -210,7 +294,6 @@ const SidebarContent: React.FC<{
                 </ul>
             </nav>
 
-            {/* Bottom Links */}
             <div className="p-4 border-top">
                 <ul className="list-unstyled mb-0">
                     <li className="mb-3">
@@ -221,7 +304,8 @@ const SidebarContent: React.FC<{
                             style={{
                                 fontSize: "1.1rem",
                                 color: location.pathname === "/station/profile" ? "#fff" : "#666",
-                                backgroundColor: location.pathname === "/station/profile" ? "#000" : "transparent",
+                                backgroundColor:
+                                    location.pathname === "/station/profile" ? "#000" : "transparent",
                             }}
                         >
                             👤 Profile
